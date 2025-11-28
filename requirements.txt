@@ -1,0 +1,11 @@
+django
+Pillow
+gunicorn
+django-ckeditor
+djangorestframework
+aiogram
+requests
+dotenv
+
+pymupdf
+python-docx

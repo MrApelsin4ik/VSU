@@ -1,0 +1,51 @@
+{% extends "admin_panel/admin_panel_base.html" %}
+
+{% block title %}Панель управления{% endblock %}
+{% block page_title %}Панель управления сайтом{% endblock %}
+{% block page_subtitle %}
+<p class="page-subtitle">Выберите раздел, который вы хотите отредактировать.</p>
+{% endblock %}
+
+{% block content %}
+<div class="card-grid">
+    <a href="{% url 'admin:index' %}" class="card-link">
+        <h2>
+            Менеджмент БД
+            <span class="pill-small">/admin/</span>
+        </h2>
+        <small>Полный доступ к моделям и данным через стандартный Django admin.</small>
+    </a>
+
+    <a href="{% url 'admin_news_list' %}" class="card-link">
+        <h2>
+            Новости
+            <span class="pill-small">/admin/news</span>
+        </h2>
+        <small>Создание и изменение новостей, управление их публикацией.</small>
+    </a>
+
+    <a href="{% url 'admin_announcement_list' %}" class="card-link">
+        <h2>
+            Объявления
+            <span class="pill-small">/admin/announcement</span>
+        </h2>
+        <small>Информационные объявления, важные сообщения и их статус.</small>
+    </a>
+
+    <a href="{% url 'admin_course_list' %}" class="card-link">
+        <h2>
+            Курсы
+            <span class="pill-small">/admin/courses</span>
+        </h2>
+        <small>Управление учебными курсами и привязка к разделам.</small>
+    </a>
+
+    <a href="{% url 'admin_section_list' %}" class="card-link">
+        <h2>
+            Разделы
+            <span class="pill-small">/admin/sections</span>
+        </h2>
+        <small>Структура сайта: разделы, типы разделов (новости, объявления, курсы).</small>
+    </a>
+</div>
+{% endblock %}

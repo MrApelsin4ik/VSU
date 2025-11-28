@@ -1,3 +1,5 @@
+from email.policy import default
+
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
 
@@ -6,7 +8,6 @@ class CustomUserManager(BaseUserManager):
     def create_user(self, email, username='', password=None):
         if not email:
             raise ValueError("Email обязателен")
-
 
         email = self.normalize_email(email)
         user = self.model(email=email, username=username)
@@ -21,6 +22,7 @@ class CustomUserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
+
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
     username = models.CharField(max_length=50, unique=False, blank=True, default='')
@@ -28,14 +30,13 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
 
-
     objects = CustomUserManager()
 
     USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = []  # чтобы Django не требовал доп. полей при создании суперюзера
 
     def __str__(self):
-        return self.username
-
+        return self.username or self.email
 
 
 class Section(models.Model):
@@ -47,6 +48,7 @@ class Section(models.Model):
         MAIN = "main", "Главное"
         NEWS = "news", "Новости"
         ANNOUNCEMENT = "announcement", "Объявления"
+        COURSES = "courses", "Курсы"
 
     title = models.CharField("Название раздела", max_length=255)
     parent = models.ForeignKey(
@@ -63,7 +65,7 @@ class Section(models.Model):
         choices=SectionType.choices,
         default=SectionType.MAIN,
     )
-
+    relative_url = models.CharField("Относительная ссылка", max_length=255, blank=True, null=True)
 
     class Meta:
         verbose_name = "Раздел"
@@ -71,6 +73,104 @@ class Section(models.Model):
 
     def __str__(self):
         return self.title
+
+class Course(models.Model):
+    """
+    Курсы: привязка к разделу, название, описание.
+    """
+    section = models.ForeignKey(
+        Section,
+        verbose_name="Раздел",
+        on_delete=models.PROTECT,
+        related_name="courses",
+        null=True,
+        blank=True,
+    )
+    title = models.CharField("Название курса", max_length=255)
+    description = models.TextField("Описание", blank=True)
+    description_ai = models.TextField(blank=True, default='')
+    description_ai_l2 = models.TextField(blank=True, default='')
+    created_at = models.DateTimeField("Дата создания", auto_now_add=True)
+    updated_at = models.DateTimeField("Дата изменения", auto_now=True)
+    is_active = models.BooleanField("Активен", default=True)
+
+    class Meta:
+        verbose_name = "Курс"
+        verbose_name_plural = "Курсы"
+        ordering = ("title",)
+
+    def __str__(self):
+        return self.title
+
+    def preview_image(self):
+        """
+        Возвращает объект CourseImage, помеченный как превью (если есть),
+        иначе первый по sort_order, иначе None.
+        Удобно для показа в админке/листинге.
+        """
+        preview = self.images.filter(is_preview=True).first()
+        if preview:
+            return preview
+        return self.images.order_by("sort_order").first()
+
+
+class CourseImage(models.Model):
+    """
+    Изображения, привязанные к курсу (для краткого описания/превью и т.п.).
+    При установке is_preview=True, остальные изображения этого курса будут сброшены.
+    """
+    course = models.ForeignKey(
+        Course,
+        verbose_name="Курс",
+        on_delete=models.CASCADE,
+        related_name="images",
+    )
+    image = models.ImageField("Изображение", upload_to="courses/images/")
+    is_preview = models.BooleanField("Использовать как превью", default=False)
+    sort_order = models.PositiveIntegerField("Порядок", default=0)
+
+    class Meta:
+        verbose_name = "Изображение курса"
+        verbose_name_plural = "Изображения курсов"
+        ordering = ("sort_order", "id")
+
+    def __str__(self):
+        return f"Image for {self.course.title}"
+
+    def save(self, *args, **kwargs):
+        # если помечаем это изображение как превью, снимаем флаг с других изображений курса
+        super_save_needed = True
+        if self.is_preview:
+            # обновляем остальные записи в БД, чтобы у курса было только одно превью
+            CourseImage.objects.filter(course=self.course, is_preview=True).exclude(pk=self.pk).update(is_preview=False)
+        super().save(*args, **kwargs)
+
+
+class CourseAttachment(models.Model):
+    """
+    Файлы, прикреплённые к курсу.
+    """
+    course = models.ForeignKey(
+        Course,
+        verbose_name="Курс",
+        on_delete=models.CASCADE,
+        related_name="attachments",
+    )
+    file = models.FileField("Файл", upload_to="courses/attachments/")
+    original_name = models.CharField("Оригинальное имя файла", max_length=255, blank=True)
+
+    class Meta:
+        verbose_name = "Файл курса"
+        verbose_name_plural = "Файлы курсов"
+
+    def __str__(self):
+        return self.original_name or self.file.name
+
+    def save(self, *args, **kwargs):
+
+        if not self.original_name:
+            self.original_name = self.file.name.split('/')[-1]
+        super().save(*args, **kwargs)
 
 
 class News(models.Model):
@@ -86,13 +186,10 @@ class News(models.Model):
         related_name="news",
     )
     title = models.CharField("Тема", max_length=255)
-
-
     short_description = models.TextField("Краткое описание")
-
-
-    body = models.TextField()
-
+    body = models.TextField(blank=True, default='')
+    description_ai = models.TextField(blank=True, default='')
+    description_ai_l2 = models.TextField(blank=True, default='')
     created_at = models.DateTimeField("Дата создания", auto_now_add=True)
     updated_at = models.DateTimeField("Дата изменения", auto_now=True)
     is_published = models.BooleanField("Опубликовано", default=True)
@@ -104,6 +201,7 @@ class News(models.Model):
 
     def __str__(self):
         return self.title
+
 
 
 class NewsImage(models.Model):
@@ -167,6 +265,11 @@ class NewsAttachment(models.Model):
     def __str__(self):
         return self.original_name or self.file.name
 
+    def save(self, *args, **kwargs):
+        if not self.original_name:
+            self.original_name = self.file.name.split('/')[-1]
+        super().save(*args, **kwargs)
+
 
 class Announcement(models.Model):
     """
@@ -180,17 +283,11 @@ class Announcement(models.Model):
         related_name="announcements",
         null=True,
         blank=True,
-
     )
     title = models.CharField("Тема", max_length=255)
-
-
-    body = models.TextField(
-        "Описание",
-
-    )
-
-
+    body = models.TextField("Описание", blank=True, default='')
+    description_ai = models.TextField(blank=True, default='')
+    description_ai_l2 = models.TextField(blank=True, default='')
     created_at = models.DateTimeField("Дата создания", auto_now_add=True)
     updated_at = models.DateTimeField("Дата изменения", auto_now=True)
     is_active = models.BooleanField("Активно", default=True)
@@ -258,5 +355,7 @@ class AnnouncementAttachment(models.Model):
     def __str__(self):
         return self.original_name or self.file.name
 
-
-
+    def save(self, *args, **kwargs):
+        if not self.original_name:
+            self.original_name = self.file.name.split('/')[-1]
+        super().save(*args, **kwargs)

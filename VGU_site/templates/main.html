@@ -16,7 +16,6 @@
             flex-direction: column;
         }
 
-        /* Верхняя панель */
         .top-bar {
             display: flex;
             align-items: center;
@@ -32,6 +31,56 @@
         .logo {
             font-weight: 600;
             font-size: 18px;
+        }
+
+        .filters {
+            display: flex;
+            gap: 20px;
+        }
+
+        .filter-button {
+            position: relative;
+            background-color: #111827;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .filter-button:hover {
+            background-color: #374151;
+        }
+
+        .filter-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 280px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: none;
+            z-index: 100;
+            max-height: 420px;
+            overflow: auto;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        .filter-menu.open {
+            display: block;
+        }
+
+        .filter-menu a {
+            display: block;
+            padding: 10px;
+            text-decoration: none;
+            color: #111827;
+        }
+
+        .filter-menu a:hover {
+            background-color: #f3f4f6;
         }
 
         .search-wrapper {
@@ -108,7 +157,6 @@
             color: #6b7280;
         }
 
-
         .layout {
             flex: 1;
             display: flex;
@@ -155,7 +203,6 @@
             text-decoration: underline;
         }
 
-
         .sidebar {
             flex: 0 0 260px;
         }
@@ -201,6 +248,76 @@
             color: #6b7280;
         }
 
+        .sections-scroll {
+            overflow-x: auto;
+            white-space: nowrap;
+            background: #ffffff;
+            padding: 10px 0;
+        }
+
+        .sections-scroll a.section-btn {
+            display: inline-block;
+            margin: 0 10px;
+            padding: 8px 16px;
+            background: #111827;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+
+        .sections-scroll a.section-btn:hover {
+            background: #374151;
+        }
+
+        .filter-tree {
+            font-size: 13px;
+            color: #111827;
+        }
+
+        .filter-tree ul {
+            list-style: none;
+            padding-left: 18px;
+            margin: 4px 0;
+        }
+
+        .filter-tree label {
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .filter-actions button {
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+        }
+        .search-sep {
+            border: none;
+            border-top: 1px solid #e6e6e9;
+            margin: 10px 0;
+        }
+        .search-block-title {
+            font-size: 12px;
+            color: #6b7280;
+            margin: 8px 0 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .search-item small {
+            display:block;
+            color:#6b7280;
+            font-size:12px;
+        }
+
         @media (max-width: 1024px) {
             .layout {
                 flex-direction: column;
@@ -226,11 +343,10 @@
 </head>
 <body>
 <div class="page">
-    <header class="top-bar">
-
-
-        <div class="search-wrapper">
-            <form id="search-form" action="" method="get" autocomplete="off">
+<header class="top-bar" >
+    <div class="search-wrapper"  style="margin: auto">
+        <form id="search-form" action="{% url 'search' %}" method="get" autocomplete="off">
+            <div style="display:flex; align-items:center; gap:8px;">
                 <input
                     id="search-input"
                     class="search-input"
@@ -238,41 +354,99 @@
                     name="q"
                     placeholder="Поиск по новостям и объявлениям"
                 >
-            </form>
-            <div id="search-results" class="search-results hidden">
-                <div id="search-results-inner" class="search-results-inner">
-                    <div class="search-empty">Введите текст для поиска</div>
-                </div>
+                <!-- SVG кнопка самолётик -->
+                <button id="search-send" type="button" title="Искать во всех новостях, объявлениях и курсах" style="background:none;border:none;cursor:pointer;padding:8px;display:inline-flex;align-items:center;">
+                    <!-- простой самолётик (стрелочка) -->
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M2 21L23 12L2 3V10L17 12L2 14V21Z" fill="currentColor"/>
+                    </svg>
+                </button>
+            </div>
+        </form>
+        <div id="search-results" class="search-results hidden">
+            <div id="search-results-inner" class="search-results-inner">
+                <div class="search-empty">Введите текст для поиска</div>
             </div>
         </div>
-    </header>
+    </div>
+</header>
+
+    <div class="sections-scroll">
+        {% for section in sections %}
+            <a class="section-btn" href="{{ section.relative_url|default:'#' }}">{{ section.title }}</a>
+        {% endfor %}
+    </div>
 
     <main class="layout">
-        <!-- Центральная колонка новостей -->
         <section class="news-column">
-            {% for news in news_list %}
-                <article class="news-item">
-                    <h2>{{ news.title }}</h2>
-                    <div class="news-meta">
-                        {{ news.created_at|date:"d.m.Y H:i" }}
-                        {% if news.section %} · {{ news.section.title }}{% endif %}
+            <div style="margin-bottom: 10px;">
+                <div style="position: relative; display: inline-block;">
+                    <button id="news-filter-button" class="filter-button" style="display: inline-flex; align-items: center;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M3 4a1 1 0 0 1 .832.445L10 12.12V19a1 1 0 0 0 .553.894l4 2A1 1 0 0 0 16 21V12.12l6.168-7.675A1 1 0 0 0 21 4H3z"/></svg>
+                        Фильтр новостей
+                    </button>
+                    <div id="news-filter-menu" class="filter-menu" aria-hidden="true">
+                        <div class="filter-tree" id="news-filter-tree"></div>
+                        <div style="margin-top:8px;">
+                            <label>От <input id="news-date-from" type="date" style="margin-left:8px;"/></label>
+                        </div>
+                        <div style="margin-top:6px;">
+                            <label>До <input id="news-date-to" type="date" style="margin-left:20px;"/></label>
+                        </div>
+                        <div class="filter-actions">
+                            <button id="news-apply" style="background:#111827;color:#fff;">Применить</button>
+                            <button id="news-reset" style="background:#f3f4f6;">Сбросить</button>
+                        </div>
                     </div>
-                    <p>{{ news.short_description }}</p>
+                </div>
+            </div>
 
-                    <a class="more-link" href="/news/{{ news.id }}/">Подробнее</a>
-                </article>
-            {% empty %}
-                <p>Новостей пока нет.</p>
-            {% endfor %}
+            <div id="news-items">
+                {% for news in news_list %}
+                    <article class="news-item" data-id="{{ news.id }}">
+                        <h2>{{ news.title }}</h2>
+                        <div class="news-meta" >
+                            {{ news.created_at|date:"d.m.Y H:i" }}
+                            {% if news.section %} · {{ news.section.title }}{% endif %}
+                        </div>
+                        <p>{{ news.short_description }}</p>
+                        <a class="more-link" href="/news/{{ news.id }}/">Подробнее</a>
+                    </article>
+                {% empty %}
+                    <p>Новостей пока нет.</p>
+                {% endfor %}
+            </div>
         </section>
 
-        <!-- Правый столбик объявлений -->
         <aside class="sidebar">
             <div class="sidebar-inner">
                 <h3>Объявления</h3>
-                <div class="ann-list">
+
+                <div style="margin-bottom: 10px;">
+                    <div style="position: relative; display: inline-block;">
+                        <button id="ann-filter-button" class="filter-button" style="display: inline-flex; align-items: center;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M3 4a1 1 0 0 1 .832.445L10 12.12V19a1 1 0 0 0 .553.894l4 2A1 1 0 0 0 16 21V12.12l6.168-7.675A1 1 0 0 0 21 4H3z"/></svg>
+                            Фильтр объявлений
+                        </button>
+                        <div id="ann-filter-menu" class="filter-menu" aria-hidden="true">
+                            <div class="filter-tree" id="ann-filter-tree"></div>
+                            <div style="margin-top:8px;">
+                                <label>От <input id="ann-date-from" type="date" style="margin-left:8px;"/></label>
+                            </div>
+                            <div style="margin-top:6px;">
+                                <label>До <input id="ann-date-to" type="date" style="margin-left:20px;"/></label>
+                            </div>
+                            <div class="filter-actions">
+                                <button id="ann-apply" style="background:#111827;color:#fff;">Применить</button>
+                                <button id="ann-reset" style="background:#f3f4f6;">Сбросить</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="ann-list" class="ann-list">
                     {% for ann in announcements_sidebar %}
-                        <a class="ann-btn" href="/announcement/{{ ann.id }}/">
+                        <a class="ann-btn" href="/announcement/{{ ann.id }}/" data-id="{{ ann.id }}">
                             {{ ann.title }}
                         </a>
                     {% empty %}
@@ -287,82 +461,480 @@
 </div>
 
 <script>
-    const searchInput = document.getElementById("search-input");
-    const searchResults = document.getElementById("search-results");
-    const searchResultsInner = document.getElementById("search-results-inner");
-    let searchTimer = null;
+    const sectionsTree = JSON.parse('{{ sections_tree_json|escapejs }}');
+
+    function filterTreeByType(nodes, type) {
+        return nodes.reduce((acc, n) => {
+            const children = n.children && n.children.length ? filterTreeByType(n.children, type) : [];
+            if (n.section_type === type || children.length) {
+                acc.push(Object.assign({}, n, {children}));
+            }
+            return acc;
+        }, []);
+    }
+
+    function createTree(container, nodes, name) {
+        const ul = document.createElement('ul');
+        nodes.forEach(n => {
+            const li = document.createElement('li');
+            const label = document.createElement('label');
+            const chk = document.createElement('input');
+            chk.type = 'checkbox';
+            chk.dataset.id = n.id;
+            chk.name = name;
+            label.appendChild(chk);
+            const span = document.createElement('span');
+            span.textContent = n.title;
+            label.appendChild(span);
+            li.appendChild(label);
+            if (n.children && n.children.length) {
+                const details = document.createElement('details');
+                const summary = document.createElement('summary');
+                summary.appendChild(label.cloneNode(true));
+                details.appendChild(summary);
+                const childUl = createTree(document.createElement('div'), n.children, name);
+                details.appendChild(childUl);
+                li.appendChild(details);
+                const parentChk = chk;
+                details.querySelectorAll('input[type="checkbox"]').forEach(c => {
+                    c.addEventListener('change', () => {
+                        const checked = c.checked;
+                        if (c !== parentChk) return;
+                    });
+                });
+                label.querySelector('input').addEventListener('change', function() {
+                    const checked = this.checked;
+                    details.querySelectorAll('input[type="checkbox"]').forEach(c => {
+                        c.checked = checked;
+                    });
+                });
+            } else {
+                li.appendChild(document.createElement('div'));
+            }
+            ul.appendChild(li);
+        });
+        return ul;
+    }
+
+    const newsFilterTree = document.getElementById('news-filter-tree');
+    const newsNodes = filterTreeByType(sectionsTree, 'news');
+    newsFilterTree.appendChild(createTree(newsFilterTree, newsNodes, 'filter_news[]'));
+
+    const annFilterTree = document.getElementById('ann-filter-tree');
+    const annNodes = filterTreeByType(sectionsTree, 'announcement');
+    annFilterTree.appendChild(createTree(annFilterTree, annNodes, 'filter_announcement[]'));
+
+    function toggleMenu(button, menu) {
+        button.addEventListener('click', (e) => {
+            e.stopPropagation();
+            menu.classList.toggle('open');
+        });
+        document.addEventListener('click', (e) => {
+            if (!menu.contains(e.target) && e.target !== button) {
+                menu.classList.remove('open');
+            }
+        });
+    }
+
+    toggleMenu(document.getElementById('news-filter-button'), document.getElementById('news-filter-menu'));
+    toggleMenu(document.getElementById('ann-filter-button'), document.getElementById('ann-filter-menu'));
+
+    function buildQuery(params) {
+        const esc = encodeURIComponent;
+        return Object.keys(params).map(k => {
+            const v = params[k];
+            if (Array.isArray(v)) {
+                return v.map(x => esc(k) + '=' + esc(x)).join('&');
+            }
+            if (v === null || v === undefined || v === '') return null;
+            return esc(k) + '=' + esc(v);
+        }).filter(Boolean).join('&');
+    }
 
 
-    searchInput.addEventListener("focus", () => {
-        searchResults.classList.remove("hidden");
+    function collectChecked(name) {
+        const checks = Array.from(document.querySelectorAll('input[name="'+name+'"]:checked'));
+        return checks.map(c => c.dataset.id);
+    }
+
+    document.getElementById('news-apply').addEventListener('click', () => {
+        const ids = collectChecked('filter_news[]');
+        const params = {};
+        if (ids.length) params['filter_news'] = ids;
+        const dfrom = document.getElementById('news-date-from').value;
+        const dto = document.getElementById('news-date-to').value;
+        if (dfrom) params['date_from'] = dfrom;
+        if (dto) params['date_to'] = dto;
+        const q = document.getElementById('search-input').value.trim();
+        if (q) params['q'] = q;
+        const query = buildQuery(params);
+        window.location.href = searchFormAction + (query ? '?' + query : '');
+    });
+
+    document.getElementById('news-reset').addEventListener('click', () => {
+        document.querySelectorAll('#news-filter-tree input[type="checkbox"]').forEach(i => i.checked = false);
+        document.getElementById('news-date-from').value = '';
+        document.getElementById('news-date-to').value = '';
+    });
+
+    document.getElementById('ann-apply').addEventListener('click', () => {
+        const ids = collectChecked('filter_announcement[]');
+        const params = {};
+        if (ids.length) params['filter_announcement'] = ids;
+        const dfrom = document.getElementById('ann-date-from').value;
+        const dto = document.getElementById('ann-date-to').value;
+        if (dfrom) params['date_from'] = dfrom;
+        if (dto) params['date_to'] = dto;
+        const q = document.getElementById('search-input').value.trim();
+        if (q) params['q'] = q;
+        const query = buildQuery(params);
+        window.location.href = searchFormAction + (query ? '?' + query : '');
+    });
+
+    document.getElementById('ann-reset').addEventListener('click', () => {
+        document.querySelectorAll('#ann-filter-tree input[type="checkbox"]').forEach(i => i.checked = false);
+        document.getElementById('ann-date-from').value = '';
+        document.getElementById('ann-date-to').value = '';
     });
 
 
+    let newsPage = 1;
+    let annPage = 1;
+    let loadingNews = false;
+    let loadingAnn = false;
+    let hasMoreNews = {{ has_more_news|yesno:"true,false" }};
+    let hasMoreAnn = {{ has_more_ann|yesno:"true,false" }};
+
+    function currentFilters() {
+        const params = new URLSearchParams(window.location.search);
+        return params;
+    }
+
+    function appendNews(items) {
+        const container = document.getElementById('news-items');
+        items.forEach(n => {
+            const art = document.createElement('article');
+            art.className = 'news-item';
+            const h2 = document.createElement('h2');
+            h2.textContent = n.title;
+            const meta = document.createElement('div');
+            meta.className = 'news-meta';
+            meta.textContent = n.created_at + (n.section_title ? ' · ' + n.section_title : '');
+            const p = document.createElement('p');
+            p.textContent = n.short_description;
+            const a = document.createElement('a');
+            a.className = 'more-link';
+            a.href = '/news/' + n.id + '/';
+            a.textContent = 'Подробнее';
+            art.appendChild(h2);
+            art.appendChild(meta);
+            art.appendChild(p);
+            art.appendChild(a);
+            container.appendChild(art);
+        });
+    }
+
+    function appendAnns(items) {
+        const container = document.getElementById('ann-list');
+        items.forEach(a => {
+            const link = document.createElement('a');
+            link.className = 'ann-btn';
+            link.href = '/announcement/' + a.id + '/';
+            link.textContent = a.title;
+            container.appendChild(link);
+        });
+    }
+
+    function loadMoreNews() {
+        if (loadingNews || !hasMoreNews) return;
+        loadingNews = true;
+        newsPage += 1;
+        const params = currentFilters();
+        params.set('page', newsPage);
+        fetch('/search/?' + params.toString(), {headers: {'X-Requested-With': 'XMLHttpRequest'}})
+            .then(r => r.json())
+            .then(data => {
+                appendNews(data.news);
+                hasMoreNews = data.has_more_news;
+                loadingNews = false;
+            })
+            .catch(err => {
+                console.error(err);
+                searchResultsInner.innerHTML = '<div class="search-empty">Ошибка поиска</div>';
+                searchResults.classList.remove('hidden');
+            });
+    }
+
+    function loadMoreAnn() {
+        if (loadingAnn || !hasMoreAnn) return;
+        loadingAnn = true;
+        annPage += 1;
+        const params = currentFilters();
+        params.set('ann_page', annPage);
+        fetch('/search/?' + params.toString(), {headers: {'X-Requested-With': 'XMLHttpRequest'}})
+            .then(r => r.json())
+            .then(data => {
+                appendAnns(data.announcements);
+                hasMoreAnn = data.has_more_announcements;
+                loadingAnn = false;
+                observeLastAnn();
+            })
+            .catch(() => { loadingAnn = false; });
+    }
+
+    window.addEventListener('scroll', () => {
+        if ((window.innerHeight + window.scrollY) >= (document.body.offsetHeight - 300)) {
+            loadMoreNews();
+        }
+    });
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                loadMoreAnn();
+            }
+        });
+    }, {root: null, rootMargin: '0px', threshold: 0.1});
+
+    function observeLastAnn() {
+        const items = document.querySelectorAll('#ann-list .ann-btn');
+        const last = items[items.length - 1];
+        if (last) {
+            observer.disconnect();
+            observer.observe(last);
+        }
+    }
+
+    observeLastAnn();
+
+
+    const searchForm = document.getElementById('search-form');
+    const searchFormAction = (searchForm && searchForm.action) ? searchForm.action : '/search/';
+    const searchInput = document.getElementById("search-input");
+    const searchResults = document.getElementById("search-results");
+    const searchResultsInner = document.getElementById("search-results-inner");
+    const searchSendBtn = document.getElementById("search-send");
+
+    function collectExistingIds() {
+
+        const newsIds = Array.from(document.querySelectorAll('.news-item[data-id]')).map(n => n.dataset.id);
+        const annIds = Array.from(document.querySelectorAll('.ann-btn[data-id]')).map(a => a.dataset.id);
+
+        const courseIds = Array.from(document.querySelectorAll('.course-item[data-id]')).map(c => c.dataset.id);
+        return {newsIds, annIds, courseIds};
+    }
+
+    function findOnPageMatches(q) {
+        const ql = q.toLowerCase();
+        const matches = {news: [], announcements: [], courses: []};
+
+        document.querySelectorAll('.news-item').forEach(el => {
+            const text = (el.textContent || "").toLowerCase();
+            if (text.includes(ql)) {
+                const id = el.dataset.id;
+                const title = el.querySelector('h2') ? el.querySelector('h2').textContent.trim() : (el.dataset.title || "Новость");
+                const snippet = (el.querySelector('p') ? el.querySelector('p').textContent.trim() : "").slice(0,150);
+                matches.news.push({id, title, snippet, url: el.querySelector('a.more-link') ? el.querySelector('a.more-link').href : '#'});
+            }
+        });
+
+        document.querySelectorAll('.ann-btn').forEach(el => {
+            const text = (el.textContent || "").toLowerCase();
+            if (text.includes(ql)) {
+                const id = el.dataset.id;
+                const title = el.textContent.trim();
+                matches.announcements.push({id, title, snippet: "", url: el.href});
+            }
+        });
+
+        document.querySelectorAll('.course-item').forEach(el => {
+            const text = (el.textContent || "").toLowerCase();
+            if (text.includes(ql)) {
+                const id = el.dataset.id;
+                const title = el.querySelector('.course-title') ? el.querySelector('.course-title').textContent.trim() : el.textContent.trim();
+                matches.courses.push({id, title, snippet: "", url: el.querySelector('a') ? el.querySelector('a').href : '#'});
+            }
+        });
+        return matches;
+    }
+
+    function renderResults(blocks) {
+
+        let html = "";
+
+
+        const onpage = blocks.onpage;
+        const hasOnpage = (onpage.news.length + onpage.announcements.length + onpage.courses.length) > 0;
+        if (hasOnpage) {
+            html += '<div class="search-block">';
+            html += '<div class="search-block-title">Найдено на этой странице</div>';
+            if (onpage.news.length) {
+                onpage.news.forEach(n => {
+                    html += `<a class="search-item" href="${n.url}"><strong>${escapeHtml(n.title)}</strong><div>${escapeHtml(n.snippet)}</div></a>`;
+                });
+            }
+            if (onpage.announcements.length) {
+                onpage.announcements.forEach(a => {
+                    html += `<a class="search-item" href="${a.url}"><strong>${escapeHtml(a.title)}</strong></a>`;
+                });
+            }
+            if (onpage.courses.length) {
+                onpage.courses.forEach(c => {
+                    html += `<a class="search-item" href="${c.url}"><strong>${escapeHtml(c.title)}</strong></a>`;
+                });
+            }
+            html += '</div>';
+        }
+
+
+        html += '<hr class="search-sep" />';
+
+        const remote = blocks.remote;
+        const hasRemote = (remote.news.length + remote.announcements.length + remote.courses.length) > 0;
+        if (hasRemote) {
+            html += '<div class="search-block">';
+            html += '<div class="search-block-title">Результаты по всем записям</div>';
+            if (remote.news.length) {
+                remote.news.forEach(n => {
+                    html += `<a class="search-item" href="/news/${n.id}/"><strong>${escapeHtml(n.title)}</strong><small>${escapeHtml(n.created_at || '')}</small><div>${escapeHtml(n.short_description || '')}</div></a>`;
+                });
+            }
+            if (remote.announcements.length) {
+                remote.announcements.forEach(a => {
+                    html += `<a class="search-item" href="/announcement/${a.id}/"><strong>${escapeHtml(a.title)}</strong><small>${escapeHtml(a.created_at || '')}</small><div>${escapeHtml(a.body || '')}</div></a>`;
+                });
+            }
+            if (remote.courses.length) {
+                remote.courses.forEach(c => {
+                    html += `<a class="search-item" href="/course/${c.id}/"><strong>${escapeHtml(c.title)}</strong><small>${escapeHtml(c.created_at || '')}</small><div>${escapeHtml(c.short_description || '')}</div></a>`;
+                });
+            }
+            html += '</div>';
+        } else {
+            if (!hasOnpage) {
+                html = '<div class="search-empty">Ничего не найдено</div>';
+            }
+        }
+
+        searchResultsInner.innerHTML = html;
+    }
+
+    function escapeHtml(s) {
+        if (!s) return "";
+        return String(s).replace(/[&<>"']/g, function (m) { return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]; });
+    }
+
+
+    function sendRemoteSearch() {
+        const q = searchInput.value.trim();
+        if (!q) {
+            searchResultsInner.innerHTML = '<div class="search-empty">Введите текст для поиска</div>';
+            searchResults.classList.remove('hidden');
+            return;
+        }
+
+
+        const onpageMatches = findOnPageMatches(q);
+
+        const existing = {
+            newsIds: onpageMatches.news.map(n => n.id || n.id && String(n.id)).filter(Boolean),
+            annIds: onpageMatches.announcements.map(a => a.id || a.id && String(a.id)).filter(Boolean),
+            courseIds: onpageMatches.courses.map(c => c.id || c.id && String(c.id)).filter(Boolean)
+        };
+
+        const params = new URLSearchParams();
+        params.set('q', q);
+        params.set('remote', '1');
+
+        // добавляем только если есть элементы
+        existing.newsIds.forEach(id => params.append('existing_news_ids[]', id));
+        existing.annIds.forEach(id => params.append('existing_ann_ids[]', id));
+        existing.courseIds.forEach(id => params.append('existing_course_ids[]', id));
+
+
+        renderResults({onpage: onpageMatches, remote: {news:[], announcements:[], courses:[]}});
+        searchResults.classList.remove('hidden');
+
+        const url = searchFormAction + (searchFormAction.includes('?') ? '&' : '?') + params.toString();
+        fetch(url, {
+            headers: {"X-Requested-With": "XMLHttpRequest"}
+        })
+        .then(resp => resp.json())
+        .then(data => {
+
+            const onpageNewsIds = new Set(onpageMatches.news.map(n=>String(n.id)));
+            const onpageAnnIds = new Set(onpageMatches.announcements.map(a=>String(a.id)));
+            const onpageCourseIds = new Set(onpageMatches.courses.map(c=>String(c.id)));
+
+            const remote = {news:[], announcements:[], courses:[]};
+            if (data.news) {
+                data.news.forEach(n => {
+                    if (!onpageNewsIds.has(String(n.id))) remote.news.push(n);
+                });
+            }
+            if (data.announcements) {
+                data.announcements.forEach(a => {
+                    if (!onpageAnnIds.has(String(a.id))) remote.announcements.push(a);
+                });
+            }
+            if (data.courses) {
+                data.courses.forEach(c => {
+                    if (!onpageCourseIds.has(String(c.id))) remote.courses.push(c);
+                });
+            }
+
+            renderResults({onpage: onpageMatches, remote});
+        })
+        .catch(err => {
+            console.error(err);
+            searchResultsInner.innerHTML = '<div class="search-empty">Ошибка поиска</div>';
+            searchResults.classList.remove('hidden');
+        });
+    }
+
+
+    searchInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            sendRemoteSearch();
+        }
+    });
+
+
+    searchSendBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        sendRemoteSearch();
+    });
+
+
+    let searchTimer = null;
     searchInput.addEventListener("input", () => {
+
         const q = searchInput.value.trim();
         clearTimeout(searchTimer);
-
         if (!q) {
             searchResultsInner.innerHTML = '<div class="search-empty">Введите текст для поиска</div>';
             return;
         }
 
         searchTimer = setTimeout(() => {
-            fetch(`?q=${encodeURIComponent(q)}`, {
-                headers: {
-                    "X-Requested-With": "XMLHttpRequest"
-                }
-            })
-                .then(response => response.json())
-                .then(data => {
-                    let html = "";
 
-                    if (data.news && data.news.length) {
-                        html += '<div class="search-block">';
-                        html += '<div class="search-title">Новости</div>';
-                        data.news.forEach(n => {
-                            html += `
-                                <a class="search-item" href="/news/${n.id}/">
-                                    <strong>${n.title}</strong>
-                                    <div>${n.short_description || ""}</div>
-                                </a>
-                            `;
-                        });
-                        html += "</div>";
-                    }
-
-                    if (data.announcements && data.announcements.length) {
-                        html += '<div class="search-block">';
-                        html += '<div class="search-title">Объявления</div>';
-                        data.announcements.forEach(a => {
-                            html += `
-                                <a class="search-item" href="/announcement/${a.id}/">
-                                    <strong>${a.title}</strong>
-                                    <div>${a.body || ""}</div>
-                                </a>
-                            `;
-                        });
-                        html += "</div>";
-                    }
-
-                    if (!html) {
-                        html = '<div class="search-empty">Ничего не найдено</div>';
-                    }
-
-                    searchResultsInner.innerHTML = html;
-                })
-                .catch(() => {
-                    searchResultsInner.innerHTML = '<div class="search-empty">Ошибка поиска</div>';
-                });
-        }, 300);
+            const onpage = findOnPageMatches(q);
+            renderResults({onpage, remote:{news:[], announcements:[], courses:[]}})
+            searchResults.classList.remove('hidden');
+        }, 200);
     });
 
+    searchInput.addEventListener("focus", () => {
+        searchResults.classList.remove("hidden");
+    });
 
     document.addEventListener("click", (e) => {
-        if (!searchResults.contains(e.target) && e.target !== searchInput) {
+        if (!searchResults.contains(e.target) && e.target !== searchInput && e.target !== searchSendBtn) {
             searchResults.classList.add("hidden");
         }
     });
+</script>
 </script>
 </body>
 </html>

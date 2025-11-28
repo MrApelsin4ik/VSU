@@ -46,12 +46,27 @@
             border: 1px solid #d0d0d5;
             font-size: 14px;
         }
-        .error {
+
+
+        .message {
             color: #c00;
             font-size: 13px;
             margin-bottom: 10px;
             text-align: center;
+            padding: 6px 8px;
+            border-radius: 6px;
+            background: #ffe5e5;
+            border: 1px solid #f5b3b3;
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 0.4s ease, transform 0.4s ease;
         }
+        .message.hide {
+            opacity: 0;
+            transform: translateY(-6px);
+            pointer-events: none;
+        }
+
         button[type="submit"] {
             width: 100%;
             padding: 9px 0;
@@ -65,12 +80,6 @@
         button[type="submit"]:hover {
             background: #0069d9;
         }
-        .hint {
-            margin-top: 10px;
-            font-size: 12px;
-            color: #666;
-            text-align: center;
-        }
     </style>
 </head>
 <body>
@@ -78,8 +87,13 @@
 <div class="card">
     <h1>Вход администратора</h1>
 
-    {% if error %}
-        <div class="error">{{ error }}</div>
+    {# Показываем только сообщения с тегом "admin_login" #}
+    {% if messages %}
+        {% for message in messages %}
+            {% if 'admin_login' in message.tags %}
+                <div class="message js-auto-hide">{{ message }}</div>
+            {% endif %}
+        {% endfor %}
     {% endif %}
 
     <form method="post">
@@ -96,10 +110,22 @@
         </div>
 
         <button type="submit">Войти</button>
-
-
     </form>
 </div>
+
+<script>
+    // Автохайд сообщений через 4 секунды
+    document.addEventListener('DOMContentLoaded', function () {
+        const messages = document.querySelectorAll('.js-auto-hide');
+        if (!messages.length) return;
+
+        setTimeout(function () {
+            messages.forEach(function (msg) {
+                msg.classList.add('hide');
+            });
+        }, 4000);
+    });
+</script>
 
 </body>
 </html>

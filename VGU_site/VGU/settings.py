@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,8 +26,8 @@ SECRET_KEY = 'django-insecure-gh*mg6gwozqhaz^fcr#%o89z4^#r$rdzsh_gzq-2%nst-lji6o
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1','192.168.0.115','apeellsin4ik.ru']
-
+ALLOWED_HOSTS = ['127.0.0.1','192.168.0.115','apeellsin4ik.ru', 'vgu.apeellsin4ik.ru']
+CSRF_TRUSTED_ORIGINS = ['https://vgu.apeellsin4ik.ru','http://127.0.0.1','https://127.0.0.1','https://apeellsin4ik.ru']
 
 # Application definition
 
@@ -37,6 +38,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'ckeditor',
+    'ckeditor_uploader',
+    'rest_framework',
     'main_app',
 ]
 
@@ -49,6 +53,14 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [],
+}
+
 
 ROOT_URLCONF = 'VGU.urls'
 LOGIN_URL = '/admin/login/'
@@ -122,7 +134,27 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+
+
+CKEDITOR_UPLOAD_PATH = "uploads/ckeditor/"
+
+CKEDITOR_CONFIGS = {
+    'default': {
+        'toolbar': 'Full',
+        'width': '100%',
+        'height': 500,
+        'filebrowserUploadUrl': '/ckeditor/upload/',
+        'image_upload_url': '/ckeditor/upload/',
+        'extraPlugins': 'uploadimage',
+        'image2_alignClasses': ['align-left', 'align-center', 'align-right'],
+    }
+}
