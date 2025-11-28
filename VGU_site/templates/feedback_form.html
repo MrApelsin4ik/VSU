@@ -1,0 +1,200 @@
+{% load static %}
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Отправить обратную связь</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f6fa;
+      margin: 0;
+      padding: 0;
+    }
+
+    h1 {
+      text-align: center;
+      margin-top: 30px;
+      color: #333;
+    }
+
+    form {
+      max-width: 600px;
+      background: #fff;
+      padding: 25px 30px;
+      margin: 30px auto;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    form div {
+      margin-bottom: 18px;
+    }
+
+    label {
+      font-weight: bold;
+      color: #333;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="file"],
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid #d1d1d1;
+      border-radius: 6px;
+      padding: 10px;
+      font-size: 14px;
+      box-sizing: border-box;
+      background: #fff;
+    }
+
+    textarea {
+      resize: vertical;
+    }
+
+    button {
+      background: #4a7afe;
+      color: #fff;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 15px;
+      transition: background .25s ease;
+    }
+
+    button:hover {
+      background: #325ffc;
+    }
+
+    .messages {
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 0;
+      list-style: none;
+    }
+
+    .messages li {
+      background: #fff;
+      padding: 12px 15px;
+      margin-bottom: 10px;
+      border-left: 5px solid #4a7afe;
+      border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    }
+
+    .messages li.success {
+      border-color: #2ecc71;
+    }
+    .messages li.error {
+      border-color: #e74c3c;
+    }
+    .messages li.warning {
+      border-color: #f1c40f;
+    }
+            .home-button {
+            position: fixed;
+            width: 5vh; /* Размер кнопки */
+            height: 5vh;
+            top: 8px;
+            left: 8px;
+            background-color: #6c6c6c;
+            color: white;
+            padding: 0.3vh;
+            border-radius: 50%;
+            border: 2px solid #888; /* Серая линия */
+            cursor: pointer;
+            font-size: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .home-button img {
+            width: 4vh;
+            height: 4vh;
+        }
+
+        .home-button:hover {
+            background-color: #555;
+            border-color: #aaa; /* Светлее при наведении */
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7); /* Увеличенный теневой эффект */
+        }
+    @media (max-width: 480px) {
+      form {
+        padding: 20px;
+      }
+
+      button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Обратная связь</h1>
+  <button class="home-button" onclick="window.location.href='/'">
+        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDPmHLAAAACXBIWXMAAAsTAAALEwEAmpwYAAAC/ElEQVR4nO3cwYoTYRDE8X4ojx7cS9iDPs9eFnxlUSTsqZaFaZCwGSfJdL4v1f8f5KRiuqoU3Q0TAQAAAAAAAADuviwvNPQ1In5FxJ+IeBr9ZnBf3yLid0Roef2NiAMl9PAcEcd/ytfyOi4/BmOHM+Vreb1FxI/RbxJjyhcj8LW1fDECP5eWL0bg49ryxQge363lixE8rr3KFyPw+X/+Z6/jhT+XrxMY/cl/i4jvV/wavk5gVH5iBI3LT4ygcfmJETQuPzGCxuUnRtC4/MQIGpefGEHj8hMjaFx+YgSNy0+MoHH5iRE0Lj8xgsblJ0bQuPzECBqXnxhB4/ITI2hcfmIEjctPjKBx+YkRNC4/MYLG5SdG0Lj8xAgal58YQePyEyNoXH5qP4LO5Uf3EVB+4xFQfuMRUH7jEVB+4xFQfuMRUH7jEVB+4xFQfuMRXPJMno8Xz9k57/mCHKd4ZtE1T+PCukuyHPo3wbWPYsM6PcIIbnkOH9Zp9hHc+hBGrNPMI9jjCZxYp1lHsNfjV7FOM45gz2fv7m2P9ySze3YfwevG33jLSPbWbQDHje/ro7NdvWz8JM9sgbkN4LBhBD+jyMuGj3HNFpjbAOI/Iygr/9wITj/DN1tgjgM4N4Ly8k9H8NkHOGcLzHUApyO4W/np9cw3I2YLzHkAsXSw+z/4bjFbYO4DmI5bYDK7p5xbYDK7p5xbYDK7p5xbYDK7p5xbYDK7p5xbYDK7p5xbYDK7p5xbYDK7p5xbYDK7p5xbYDK7p5xbYDK7p5xbYDK7p5xbYDK7p5xbYDK7p5xbYDK7p5xbYDK7p5xbYDK7p5xbYDK7p5xbYDK7p5xbYDK7p5xbYDK7p5xbYDK7p5xbYDK7p5xbYDK7p5xbYDK7p5xbYDK7p5xbYDK7p5xbYDK7p5xbYDK7p5xbYDK7p5xbYDK7p5xbYDK7p5wme3HPnY0unAEMNrpwBjDY6MIZwGCjC2cAg40unAEMNrpwBjDY6MIZAAAAAAAAAAAAAAAAaO0dB9uFbZ+mbMwAAAAASUVORK5CYII=" alt="home">
+    </button>
+  {% if messages %}
+    <ul class="messages">
+      {% for m in messages %}
+        <li{% if m.tags %} class="{{ m.tags }}"{% endif %}>{{ m }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  <form action="{% url 'feedback_create' %}" method="post" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+
+    <div>
+      <label for="subject">Тема *</label>
+      <input type="text" id="subject" name="subject" maxlength="255" required />
+    </div>
+
+    <div>
+      <label for="section">Раздел</label>
+      <select id="section" name="section">
+        <option value="">— выбрать —</option>
+        {% for s in sections %}
+          <option value="{{ s.id }}">{{ s.title }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div>
+      <label for="description">Описание</label>
+      <textarea id="description" name="description" rows="6"></textarea>
+    </div>
+
+    <div>
+      <label for="contact_email">Email (по желанию)</label>
+      <input type="email" id="contact_email" name="contact_email" />
+    </div>
+
+    <div>
+      <label for="contact_phone">Телефон (по желанию)</label>
+      <input type="text" id="contact_phone" name="contact_phone" />
+    </div>
+
+    <div>
+      <label for="images">Изображения (можно несколько)</label>
+      <input type="file" id="images" name="images" accept="image/*" multiple />
+    </div>
+
+    <div>
+      <label for="files">Файлы (можно несколько)</label>
+      <input type="file" id="files" name="files" multiple />
+    </div>
+
+    <div>
+      <button type="submit">Отправить</button>
+    </div>
+  </form>
+</body>
+</html>

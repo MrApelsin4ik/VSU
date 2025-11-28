@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if news %} {{news.title}} {% else %} {{ announcement.title }} {%endif%}</title>
+</head>
+<style>
+    body {
+        font-family: 'Arial', sans-serif;
+        background-color: #f4f7fc;
+        margin: 0;
+        padding: 0;
+        color: #333;
+    }
+
+    .container {
+        width: 80%;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #fff;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        margin-top: 50px;
+    }
+
+    h1 {
+        font-size: 2em;
+        color: #333;
+        margin-bottom: 20px;
+    }
+
+    .content {
+        line-height: 1.6;
+        font-size: 1.1em;
+        margin-bottom: 30px;
+    }
+
+    .content img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: transform 0.2s ease-in-out;
+    }
+
+
+    .content img.thumbnail {
+        max-width: 200px;
+        margin: 10px;
+    }
+
+
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.8);
+    }
+
+    .modal-content {
+        margin: auto;
+        margin-top: 2vh;
+        display: block;
+        width: 80%;
+        max-width: 1200px;
+    }
+
+    .close {
+        position: absolute;
+        top: 15px;
+        right: 35px;
+        color: #f1f1f1;
+        font-size: 40px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .back-btn {
+        display: inline-block;
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .back-btn:hover {
+        background-color: #0056b3;
+    }
+
+    .footer {
+        text-align: center;
+        margin-top: 50px;
+        font-size: 0.9em;
+        color: #888;
+    }
+</style>
+<body>
+
+    <div class="container">
+        <a href="{% url 'main_page' %}" class="back-btn">&larr; Назад</a>
+
+        <h1>{% if news %} {{news.title}} {% else %} {{ announcement.title }} {%endif%}</h1>
+
+        <div class="content">
+            {% if news %}
+                <p><strong>Дата: </strong>{{ news.created_at }}</p>
+                <p>{{news.short_description}}</p>
+                <p>{{ news.body|safe }}</p>
+                {% for image in news.images.all %}
+                    <div class="image-wrapper">
+                        <img class="thumbnail" src="{{ image.image.url }}" alt="{{ image.image.name }}" onclick="openModal(this, '{{ image.image.name }}')">
+                        <p class="img-description">{{ image.image.name }}</p>
+                    </div>
+                {% endfor %}
+                {% for attachment in news.attachments.all %}
+                    <p><a href="{{ attachment.file.url }}" target="_blank">Скачать файл: {{ attachment.original_name }}</a></p>
+                {% endfor %}
+            {% elif announcement %}
+                <p><strong>Дата: </strong>{{ announcement.created_at }}</p>
+                <p>{{ announcement.body|safe }}</p>
+                {% for image in announcement.images.all %}
+                    <div class="image-wrapper">
+                        <img class="thumbnail" src="{{ image.image.url }}" alt="{{ image.image.name }}" onclick="openModal(this, '{{ image.image.name }}')">
+                        <p class="img-description">{{ image.image.name }}</p>
+                    </div>
+                {% endfor %}
+                {% for attachment in announcement.attachments.all %}
+                    <p><a href="{{ attachment.file.url }}" target="_blank">Скачать файл: {{ attachment.original_name }}</a></p>
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        <div id="imageModal" class="modal">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <img class="modal-content" id="modalImage">
+            <p id="modalDescription" style="color:white; text-align:center; margin-top:10px;"></p>
+        </div>
+    </div>
+
+
+    <div id="imageModal" class="modal">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <img class="modal-content" id="modalImage">
+    </div>
+
+    <script>
+
+        function openModal(img) {
+            var modal = document.getElementById("imageModal");
+            var modalImg = document.getElementById("modalImage");
+            modal.style.display = "block";
+            modalImg.src = img.src;
+        }
+
+
+        function closeModal() {
+            var modal = document.getElementById("imageModal");
+            modal.style.display = "none";
+        }
+
+
+        window.onclick = function(event) {
+            var modal = document.getElementById("imageModal");
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+
+
+        window.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeModal();
+            }
+        });
+    </script>
+
+<script>
+    function openModal(img, description) {
+        const modal = document.getElementById("imageModal");
+        const modalImg = document.getElementById("modalImage");
+        const modalDesc = document.getElementById("modalDescription");
+
+        modal.style.display = "block";
+        modalImg.src = img.src;
+        modalDesc.textContent = description || img.alt;
+    }
+
+    function closeModal() {
+        const modal = document.getElementById("imageModal");
+        modal.style.display = "none";
+    }
+
+    window.onclick = function(event) {
+        const modal = document.getElementById("imageModal");
+        if (event.target == modal) {
+            closeModal();
+        }
+    }
+
+    window.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeModal();
+        }
+    });
+</script>
+</body>
+</html>

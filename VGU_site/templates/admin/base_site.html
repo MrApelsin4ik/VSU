@@ -1,0 +1,44 @@
+{% extends "admin/base.html" %}
+{% load i18n %}
+
+
+{% block title %}
+    {% if subtitle %}{{ subtitle }} | {% endif %}
+    {{ site_title|default:_("Django site admin") }}
+{% endblock %}
+
+
+{% block branding %}
+    <h1 id="site-name">
+        <a href="{% url 'admin:index' %}">
+            {{ site_header|default:_("Django administration") }}
+        </a>
+    </h1>
+
+    {# Кнопка сразу под заголовком, слева #}
+    <div style="clear: both; margin-top: 8px;">
+        <a href="{% url 'admin_main' %}"
+           style="
+               display: inline-flex;
+               align-items: center;
+               justify-content: center;
+               padding: 6px 16px;
+               border-radius: 999px;
+               background: linear-gradient(135deg, #2563eb, #1d4ed8);
+               color: #ffffff;
+               text-decoration: none;
+               font-size: 13px;
+               font-weight: 500;
+               box-shadow: 0 3px 10px rgba(37, 99, 235, 0.35);
+               border: none;
+               gap: 6px;
+               white-space: nowrap;
+           ">
+            <span style="font-size: 14px; line-height: 1;">←</span>
+            <span>В панель управления сайтом</span>
+        </a>
+    </div>
+{% endblock %}
+
+
+{% block nav-global %}{% endblock %}
