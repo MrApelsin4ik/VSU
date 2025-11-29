@@ -36,6 +36,7 @@ urlpatterns = [
     path('api/ai/missing/', MissingAIListView.as_view(), name='ai-missing'),
     path('api/ai/update/', UpdateAIView.as_view(), name='ai-update'),
     path('api/ai/full/<str:model>/<int:pk>/', FullObjectView.as_view(), name='ai-full'),
+    path('api/get/', ObjectsRangeView.as_view(), name='api-get'),
 ]
 
 

@@ -26,13 +26,13 @@ LM_API_URL = os.getenv("LM_API_URL", "http://192.168.0.117:1234/v1/chat/completi
 LM_API_KEY = os.getenv("LM_API_KEY", None)
 LM_MODEL = os.getenv("LM_MODEL", 'openai/gpt-oss-20b')
 
-# параметры chunking / summarization
+
 CHUNK_SIZE_CHARS = int(os.getenv("CHUNK_SIZE_CHARS", "3000"))
 CHUNK_OVERLAP_CHARS = int(os.getenv("CHUNK_OVERLAP_CHARS", "400"))
 MAX_RETRIES = 3
 SLEEP_BETWEEN_REQUESTS = float(os.getenv("SLEEP_BETWEEN_REQUESTS", "0.2"))
 
-# логирование
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
 # ----------------------- HTTP helpers -----------------------
@@ -124,7 +124,7 @@ def extract_best_text(payload: Dict[str, Any], tmp_dir: Optional[str] = None) ->
     attachment_texts = []
     att = payload.get("attachments") or payload.get("files") or payload.get("resources")
     if att and isinstance(att, list):
-        # create tmp dir if needed
+
         if tmp_dir is None:
             tmp_dir = tempfile.mkdtemp(prefix="ingest_")
         else:
@@ -163,44 +163,87 @@ def extract_best_text(payload: Dict[str, Any], tmp_dir: Optional[str] = None) ->
     candidates = sorted(candidates, key=lambda s: len(s), reverse=True)
     return candidates[0]
 
-
 import re
 from typing import List
 
-SENTENCE_END_RE = re.compile(r'[.!?](?:\s+|$)')
-
 def chunk_text(text: str, size: int = 500, overlap: int = 50) -> List[str]:
+    """
+    Делит текст на чанки длиной примерно size символов, но не разрывает предложения.
+    Перекрытие между чанками задаётся в символах (overlap) — но перекрытие
+    набирается только целыми предложениями из конца предыдущего чанка.
+
+    Args:
+        text: входной текст
+        size: желаемый размер чанка в символах (приблизительно)
+        overlap: количество символов перекрытия (попытка, сохраняются целые предложения)
+
+    Returns:
+        Список строк — чанков текста.
+    """
     if not text:
         return []
 
-    chunks = []
-    n = len(text)
-    i = 0
 
-    while i < n:
-        raw_end = min(i + size, n)
-        chunk = text[i:raw_end]
+    txt = text.replace('\r\n', '\n').strip()
 
-        ends = list(SENTENCE_END_RE.finditer(chunk))
 
-        if ends:
-            last_end_pos = ends[-1].end()
-            end = i + last_end_pos
+    sentences = re.split(r'(?<=[\.\!\?…])\s+', txt)
+    sentences = [s.strip() for s in sentences if s.strip()]
+
+
+    if not sentences:
+        sentences = [line.strip() for line in re.split(r'\n+', txt) if line.strip()]
+
+    chunks: List[str] = []
+    current = ""
+
+    for sent in sentences:
+
+        if not current:
+            current = sent
+            continue
+
+
+        if len(current) + 1 + len(sent) <= size:
+            current = f"{current} {sent}"
+            continue
+
+
+        chunks.append(current.strip())
+
+
+        overlap_sentences: List[str] = []
+        if overlap > 0:
+            prev_sents = re.split(r'(?<=[\.\!\?…])\s+', current.strip())
+
+            total = 0
+            picked = []
+            for ps in reversed(prev_sents):
+                ps = ps.strip()
+                if not ps:
+                    continue
+
+                add_len = len(ps) if not picked else len(ps) + 1
+                if total + add_len <= overlap:
+                    picked.append(ps)
+                    total += add_len
+                else:
+                    break
+            overlap_sentences = list(reversed(picked))
+
+
+        if overlap_sentences:
+            current = " ".join(overlap_sentences + [sent]).strip()
         else:
+            current = sent
 
-            space_pos = chunk.rfind(' ')
-            end = i + (space_pos if space_pos != -1 else raw_end - i)
 
-        chunk_text_part = text[i:end].strip()
-        if chunk_text_part:
-            chunks.append(chunk_text_part)
-
-        if end >= n:
-            break
-
-        i = max(i, end - overlap)
+    if current:
+        chunks.append(current.strip())
 
     return chunks
+
+
 
 
 
@@ -288,7 +331,7 @@ def extract_text_from_docx(path: str) -> str:
             text = para.text.strip()
             if text:
                 parts.append(text)
-        # also try tables
+
         for table in doc.tables:
             for row in table.rows:
                 row_text = " ".join(cell.text.strip() for cell in row.cells if cell.text.strip())
@@ -543,6 +586,7 @@ def summarize_document_two_levels(text: str) -> Dict[str, Optional[str]]:
         return {"description_ai": None, "description_ai_l2": None}
 
     chunks = chunk_text(text, size=CHUNK_SIZE_CHARS, overlap=CHUNK_OVERLAP_CHARS)
+    print(f'\n\n--------------CHUNKS------------\n{chunks}')
     logging.info("Document split to %d chunks (approx %d chars each)", len(chunks), CHUNK_SIZE_CHARS)
 
     chunk_summaries = []

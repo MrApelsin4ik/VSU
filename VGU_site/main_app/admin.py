@@ -1,4 +1,3 @@
-# main_app/admin.py
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from ckeditor.widgets import CKEditorWidget
@@ -91,7 +90,7 @@ class CustomUserAdmin(BaseUserAdmin):
         ),
     )
 
-    # Авторизуемся по email
+
     add_form_template = None
 
 
@@ -201,7 +200,7 @@ class AnnouncementAdmin(admin.ModelAdmin):
     inlines = [AnnouncementImageInline, AnnouncementAttachmentInline]
 
 
-# (не обязательно, но можно отдельно зарегистрировать вложенные модели)
+
 @admin.register(NewsImage)
 class NewsImageAdmin(admin.ModelAdmin):
     list_display = ("news", "is_preview", "sort_order")

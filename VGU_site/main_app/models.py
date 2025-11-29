@@ -34,7 +34,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     objects = CustomUserManager()
 
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = []  # чтобы Django не требовал доп. полей при создании суперюзера
+    REQUIRED_FIELDS = []
 
     def __str__(self):
         return self.username or self.email
@@ -225,10 +225,10 @@ class CourseImage(models.Model):
         return f"Image for {self.course.title}"
 
     def save(self, *args, **kwargs):
-        # если помечаем это изображение как превью, снимаем флаг с других изображений курса
+
         super_save_needed = True
         if self.is_preview:
-            # обновляем остальные записи в БД, чтобы у курса было только одно превью
+
             CourseImage.objects.filter(course=self.course, is_preview=True).exclude(pk=self.pk).update(is_preview=False)
         super().save(*args, **kwargs)
 
@@ -289,6 +289,13 @@ class News(models.Model):
     def __str__(self):
         return self.title
 
+
+    def preview_image(self):
+        """
+        Возвращает NewsImage, помеченный как превью (is_preview=True),
+        иначе None — мы показываем изображение только если оно помечено превью.
+        """
+        return self.images.filter(is_preview=True).first()
 
 
 class NewsImage(models.Model):

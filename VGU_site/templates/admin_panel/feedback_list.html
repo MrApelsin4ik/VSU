@@ -50,19 +50,18 @@
     .left-col{flex:1 1 60%}
     .right-col{flex:0 0 280px}
 
-    /* миниатюры — жёсткое ограничение размеров */
+
     .images-grid{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
     .thumb-btn{padding:0;background:transparent;border:0;cursor:pointer}
     .thumb-btn:focus{outline:3px solid rgba(0,120,215,0.12); border-radius:6px}
     .thumb-btn img{display:block;width:48px;height:48px;max-width:48px;max-height:48px;object-fit:cover;border-radius:6px}
 
-    /* модал */
+
     .image-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);z-index:1200;padding:20px}
     .image-modal[aria-hidden="false"]{display:flex}
     .modal-img{max-width:90vw;max-height:80vh;border-radius:8px;box-shadow:0 8px 30px rgba(0,0,0,.5)}
     .modal-close{position:absolute;top:18px;right:18px;z-index:1300;background:#fff;border-radius:8px;padding:6px 8px;border:0;cursor:pointer}
 
-    /* мобильная адаптация */
     @media (max-width:900px){
       .details-content{flex-direction:column}
       .right-col{width:100%}
@@ -195,7 +194,7 @@
 
   <script>
   (function(){
-    // элементарная защита: если скрипт подключен в head до DOM — дождёмся DOM
+
     function ready(fn){
       if (document.readyState !== 'loading') fn();
       else document.addEventListener('DOMContentLoaded', fn);
@@ -207,7 +206,7 @@
       const detailsRows = () => Array.from(document.querySelectorAll('tr.details-row'));
       let lastFocusedThumb = null;
 
-      // показать/скрыть детали: detailsRow — <tr>, toggleBtn — кнопка (может быть null)
+
       function openDetails(detailsRow, toggleBtn){
         detailsRow.setAttribute('aria-hidden','false');
         if (toggleBtn){
@@ -223,7 +222,7 @@
         }
       }
 
-      // инициализация кнопок toggle
+
       document.querySelectorAll('.toggle-btn').forEach(function(btn){
         btn.addEventListener('click', function(){
           const summaryRow = btn.closest('.summary-row');
@@ -238,7 +237,7 @@
         });
       });
 
-      // expand / collapse all
+
       if (expandAllBtn) expandAllBtn.addEventListener('click', function(){
         detailsRows().forEach(function(r){
           const toggle = r.previousElementSibling?.querySelector('.toggle-btn') || null;
@@ -274,7 +273,7 @@
         }
       }
 
-      // миниатюры -> модал
+
       document.querySelectorAll('.thumb-btn').forEach(function(btn){
         btn.addEventListener('click', function(){
           const src = btn.getAttribute('data-full') || btn.querySelector('img')?.src;
@@ -305,7 +304,7 @@
         }
       }
 
-      // закрытие модалки по кнопке / клику вне / ESC
+
       const modalClose = document.querySelector('.modal-close');
       if (modalClose) modalClose.addEventListener('click', closeModal);
       const modalWrap = document.getElementById('image-modal');
@@ -319,7 +318,7 @@
             closeModal();
             return;
           }
-          // если модалки нет — закроем открытые детали
+
           const opened = detailsRows().filter(r => r.getAttribute('aria-hidden') === 'false');
           if (opened.length){
             opened.forEach(function(r){
@@ -331,8 +330,7 @@
         }
       });
 
-      // при загрузке: скрываем все details и синхронизируем aria-expanded
-      // (если в шаблоне есть строки с aria-hidden="false", то они останутся открыты)
+
       (function init(){
         document.querySelectorAll('tr.details-row').forEach(function(r){
           if (r.getAttribute('aria-hidden') !== 'false'){
@@ -350,7 +348,7 @@
         updateGlobalButtons();
       })();
 
-    }); // ready end
+    });
   })();
   </script>
 </body>

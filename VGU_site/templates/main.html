@@ -319,6 +319,23 @@
             font-size:12px;
         }
 
+        .news-thumb {
+            width: 120px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+            flex-shrink: 0;
+            box-shadow: 0 2px 6px rgba(15,23,42,0.08);
+        }
+        .news-item .news-body {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+        .news-item .news-body .news-text {
+            flex: 1 1 auto;
+        }
+
         @media (max-width: 1024px) {
             .layout {
                 flex-direction: column;
@@ -412,17 +429,35 @@
             <div id="news-items">
                 {% for news in news_list %}
                     <article class="news-item" data-id="{{ news.id }}">
-                        <h2>{{ news.title }}</h2>
-                        <div class="news-meta" >
-                            {{ news.created_at|date:"d.m.Y H:i" }}
-                            {% if news.section %} · {{ news.section.title }}{% endif %}
-                        </div>
-                        <p>{{ news.short_description }}</p>
-                        <a class="more-link" href="/news/{{ news.id }}/">Подробнее</a>
+                        {% with preview=news.preview_image %}
+                            {% if preview %}
+                                <div class="news-body">
+                                    <img src="{{ preview.image.url }}" alt="{{ news.title }}" class="news-thumb" loading="lazy" />
+                                    <div class="news-text">
+                                        <h2>{{ news.title }}</h2>
+                                        <div class="news-meta">
+                                            {{ news.created_at|date:"d.m.Y H:i" }}
+                                            {% if news.section %} · {{ news.section.title }}{% endif %}
+                                        </div>
+                                        <p>{{ news.short_description }}</p>
+                                        <a class="more-link" href="/news/{{ news.id }}/">Подробнее</a>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <h2>{{ news.title }}</h2>
+                                <div class="news-meta">
+                                    {{ news.created_at|date:"d.m.Y H:i" }}
+                                    {% if news.section %} · {{ news.section.title }}{% endif %}
+                                </div>
+                                <p>{{ news.short_description }}</p>
+                                <a class="more-link" href="/news/{{ news.id }}/">Подробнее</a>
+                            {% endif %}
+                        {% endwith %}
                     </article>
                 {% empty %}
                     <p>Новостей пока нет.</p>
                 {% endfor %}
+
             </div>
         </section>
 
@@ -565,10 +600,12 @@
         return checks.map(c => c.dataset.id);
     }
 
+    const mainPageUrl = window.location.pathname.split('?')[0] || '/';
+
     document.getElementById('news-apply').addEventListener('click', () => {
-        const ids = collectChecked('filter_news[]');
+        const ids = collectChecked('filter_news[]'); // вернёт массив id в строках
         const params = {};
-        if (ids.length) params['filter_news'] = ids;
+        if (ids.length) params['filter_news[]'] = ids; // имя с [] чтобы соответствовало input
         const dfrom = document.getElementById('news-date-from').value;
         const dto = document.getElementById('news-date-to').value;
         if (dfrom) params['date_from'] = dfrom;
@@ -576,9 +613,8 @@
         const q = document.getElementById('search-input').value.trim();
         if (q) params['q'] = q;
         const query = buildQuery(params);
-        window.location.href = searchFormAction + (query ? '?' + query : '');
+        window.location.href = mainPageUrl + (query ? '?' + query : '');
     });
-
     document.getElementById('news-reset').addEventListener('click', () => {
         document.querySelectorAll('#news-filter-tree input[type="checkbox"]').forEach(i => i.checked = false);
         document.getElementById('news-date-from').value = '';
@@ -588,7 +624,7 @@
     document.getElementById('ann-apply').addEventListener('click', () => {
         const ids = collectChecked('filter_announcement[]');
         const params = {};
-        if (ids.length) params['filter_announcement'] = ids;
+        if (ids.length) params['filter_announcement[]'] = ids;
         const dfrom = document.getElementById('ann-date-from').value;
         const dto = document.getElementById('ann-date-to').value;
         if (dfrom) params['date_from'] = dfrom;
@@ -596,7 +632,7 @@
         const q = document.getElementById('search-input').value.trim();
         if (q) params['q'] = q;
         const query = buildQuery(params);
-        window.location.href = searchFormAction + (query ? '?' + query : '');
+        window.location.href = mainPageUrl + (query ? '?' + query : '');
     });
 
     document.getElementById('ann-reset').addEventListener('click', () => {
@@ -659,7 +695,7 @@
         newsPage += 1;
         const params = currentFilters();
         params.set('page', newsPage);
-        fetch('/search/?' + params.toString(), {headers: {'X-Requested-With': 'XMLHttpRequest'}})
+        fetch(mainPageUrl + '?' + params.toString(), {headers:{'X-Requested-With':'XMLHttpRequest'}})
             .then(r => r.json())
             .then(data => {
                 appendNews(data.news);
@@ -679,7 +715,7 @@
         annPage += 1;
         const params = currentFilters();
         params.set('ann_page', annPage);
-        fetch('/search/?' + params.toString(), {headers: {'X-Requested-With': 'XMLHttpRequest'}})
+        fetch(mainPageUrl + '?' + params.toString(), {headers:{'X-Requested-With':'XMLHttpRequest'}})
             .then(r => r.json())
             .then(data => {
                 appendAnns(data.announcements);
@@ -854,7 +890,7 @@
         params.set('q', q);
         params.set('remote', '1');
 
-        // добавляем только если есть элементы
+
         existing.newsIds.forEach(id => params.append('existing_news_ids[]', id));
         existing.annIds.forEach(id => params.append('existing_ann_ids[]', id));
         existing.courseIds.forEach(id => params.append('existing_course_ids[]', id));

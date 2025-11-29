@@ -373,7 +373,7 @@ def admin_news_create(request):
 
             success = True
             errors = {}
-            old = {}  # очищаем форму
+            old = {}
 
     context = {
         "sections": sections,
@@ -704,5 +704,60 @@ class FullObjectView(APIView):
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+class ObjectsRangeView(APIView):
+    permission_classes = [APIKeyHeaderPermission]
+
+    MODEL_MAP = {
+        'course': Course,
+        'news': News,
+        'announcement': Announcement
+    }
+
+    def get(self, request):
+        model_param = request.query_params.get('model', 'all').lower()
+        offset = int(request.query_params.get('offset', 0))
+        limit = request.query_params.get('limit', 50)
+        all_flag = request.query_params.get('all') in ('1','true','True')
+
+
+        range_param = request.query_params.get('range')
+        if range_param:
+            try:
+                start, end = map(int, range_param.split('-', 1))
+                offset = start
+                limit = end - start + 1
+            except:
+                pass
+
+        results = []
+
+        models_to_fetch = self.MODEL_MAP.keys() if model_param=='all' else [model_param]
+        for m in models_to_fetch:
+            Model = self.MODEL_MAP[m]
+            qs = Model.objects.all().order_by('created_at')
+            items = list(qs.values('id','title','created_at'))
+            for it in items:
+                it['model'] = m
+            results.extend(items)
+
+        results.sort(key=lambda x: x['created_at'])
+        total = len(results)
+
+        if not all_flag:
+            results = results[offset: offset + limit]
+        else:
+            results = results[offset:]
+
+
+        for it in results:
+            it['created_at'] = it['created_at'].isoformat() if it['created_at'] else None
+
+        return Response({
+            'count_total': total,
+            'offset': offset,
+            'limit': None if all_flag else limit,
+            'items_count': len(results),
+            'items': results
+        })
 
 

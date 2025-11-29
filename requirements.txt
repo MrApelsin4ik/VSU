@@ -6,6 +6,7 @@ djangorestframework
 aiogram
 requests
 dotenv
-
+aiosqlite
 pymupdf
 python-docx
+rapidfuzz

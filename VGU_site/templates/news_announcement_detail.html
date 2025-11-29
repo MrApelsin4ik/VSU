@@ -117,8 +117,8 @@
                 <p>{{ news.body|safe }}</p>
                 {% for image in news.images.all %}
                     <div class="image-wrapper">
-                        <img class="thumbnail" src="{{ image.image.url }}" alt="{{ image.image.name }}" onclick="openModal(this, '{{ image.image.name }}')">
-                        <p class="img-description">{{ image.image.name }}</p>
+                        <img class="thumbnail" src="{{ image.image.url }}" onclick="openModal(this, '{{ image.image.name }}')">
+
                     </div>
                 {% endfor %}
                 {% for attachment in news.attachments.all %}
@@ -129,8 +129,8 @@
                 <p>{{ announcement.body|safe }}</p>
                 {% for image in announcement.images.all %}
                     <div class="image-wrapper">
-                        <img class="thumbnail" src="{{ image.image.url }}" alt="{{ image.image.name }}" onclick="openModal(this, '{{ image.image.name }}')">
-                        <p class="img-description">{{ image.image.name }}</p>
+                        <img class="thumbnail" src="{{ image.image.url }}" onclick="openModal(this, '{{ image.image.name }}')">
+
                     </div>
                 {% endfor %}
                 {% for attachment in announcement.attachments.all %}
@@ -142,7 +142,7 @@
         <div id="imageModal" class="modal">
             <span class="close" onclick="closeModal()">&times;</span>
             <img class="modal-content" id="modalImage">
-            <p id="modalDescription" style="color:white; text-align:center; margin-top:10px;"></p>
+
         </div>
     </div>
 
@@ -187,11 +187,11 @@
     function openModal(img, description) {
         const modal = document.getElementById("imageModal");
         const modalImg = document.getElementById("modalImage");
-        const modalDesc = document.getElementById("modalDescription");
+
 
         modal.style.display = "block";
         modalImg.src = img.src;
-        modalDesc.textContent = description || img.alt;
+
     }
 
     function closeModal() {
