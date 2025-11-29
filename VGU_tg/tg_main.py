@@ -229,6 +229,16 @@ def _normalize_item(it):
         return {"title": "<unknown>", "raw": it}
 
 # ------------------ Utilities ------------------
+
+def md2(text: str) -> str:
+    bad = r"_*[]()~`>#+-=|{}.!"
+    for ch in bad:
+        text = text.replace(ch, "\\" + ch)
+    return text
+
+
+
+
 SENTENCE_END_RE = re.compile(r'[.!?…](?:\s+|$)')
 WHITESPACE_RE = re.compile(r'\s+')
 def strip_html(html: str) -> str:
@@ -492,18 +502,29 @@ async def workflow_search_and_answer(chat_id: int, query: str, user_settings: Di
         res = await loop.run_in_executor(EXECUTOR, compute)
         if not res:
             return
-        lines = ["*Быстрый поиск*\nПохожие элементы (подробный ответ на ваш вопрос все еще готовится):"]
-        for s in res:
-            it = s["item"]
-            model = it.get("model") or it.get("type") or "news"
-            pk = it.get("id") or it.get("pk")
-            title = it.get("title") or it.get("name") or "(без названия)"
-            score = s.get("score")
-            link = f"{SITE_URL}/{model}/{pk}/" if pk else API_URL
-            #lines.append(f"{title} — {model}:{pk} (score={score}) \n{link}")
-            lines.append(f"{title}\n{link}")
+
         try:
-            await bot.send_message(chat_id, "\n".join(lines))
+            lines = [
+                "*Быстрый поиск*",
+                md2("Похожие элементы (подробный ответ на ваш вопрос все еще готовится):")
+            ]
+
+            for s in res:
+                it = s["item"]
+                model = it.get("model") or it.get("type") or "news"
+                pk = it.get("id") or it.get("pk")
+                title = it.get("title") or it.get("name") or "(без названия)"
+                link = f"{SITE_URL}/{model}/{pk}/" if pk else API_URL
+
+
+                lines.append(f"[{md2(title)}]({link})")
+
+            await bot.send_message(
+                chat_id,
+                "\n".join(lines),
+                parse_mode="MarkdownV2"
+            )
+
         except Exception:
             pass
 
@@ -598,7 +619,7 @@ async def workflow_search_and_answer(chat_id: int, query: str, user_settings: Di
                     resp_chunk = resp_chunk.strip() if resp_chunk else ""
                     if resp_chunk:
                         #results_texts.append(f"Из {key} ({c['title']}) найдено:\n{resp_chunk}")
-                        results_texts.append(f"Найдено:\n{resp_chunk}")
+                        results_texts.append(f"{resp_chunk}")
             else:
                 text = ""
                 for k in ("text", "content", "body", "description", "full_text", "article", "html"):
@@ -670,7 +691,7 @@ async def workflow_search_and_answer(chat_id: int, query: str, user_settings: Di
                         resp_chunk = await loop.run_in_executor(EXECUTOR, partial(call_llm_sync, prompt_chunk, SYSTEM_PROMPT, 0.0))
                         resp_chunk = resp_chunk.strip() if resp_chunk else ""
                         if resp_chunk:
-                            results_texts.append(f"Из {key} ({c['title']}) найдено:\n{resp_chunk}")
+                            results_texts.append(f"{resp_chunk}")
 
         stop_event.set()
         try:
@@ -697,7 +718,7 @@ async def workflow_search_and_answer(chat_id: int, query: str, user_settings: Di
                     logger.exception("Failed send document: %s", e)
                     await bot.send_message(chat_id, final_answer[:3500] + "\n\n(и ещё...)")
             else:
-                await bot.send_message(chat_id, final_answer)
+                await bot.send_message(chat_id, md2(final_answer), parse_mode="MarkdownV2")
 
     await asyncio.gather(asyncio.create_task(do_fuzzy()), asyncio.create_task(do_llm()))
 

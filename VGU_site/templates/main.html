@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Главная</title>
+    <link rel="icon" href="/static/icon.png" type="image/x-icon">
     <style>
         body {
             margin: 0;
@@ -26,16 +27,17 @@
             position: sticky;
             top: 0;
             z-index: 10;
+            max-height: 30px;
         }
 
-        .logo {
-            font-weight: 600;
-            font-size: 18px;
-        }
-
-        .filters {
-            display: flex;
-            gap: 20px;
+        .topbar-left button {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          padding: 6px;
+          background: none;
+          border: none;
+          line-height: 0;
         }
 
         .filter-button {
@@ -362,6 +364,16 @@
 <body>
 <div class="page">
 <header class="top-bar" >
+
+    <div class="topbar-left" style="display:flex; align-items:center;">
+        <button style="background:none;border:none;cursor:pointer;padding:6px;display:flex;">
+            <img
+                src="/static/logo.webp"
+                style="width:40px; height:auto;"
+                alt="icon"
+            >
+        </button>
+    </div>
     <div class="search-wrapper"  style="margin: auto">
         <form id="search-form" action="{% url 'search' %}" method="get" autocomplete="off">
             <div style="display:flex; align-items:center; gap:8px;">

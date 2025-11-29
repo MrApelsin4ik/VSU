@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% if news %} {{news.title}} {% else %} {{ announcement.title }} {%endif%}</title>
+    <link rel="icon" href="/static/icon.png" type="image/x-icon">
 </head>
 <style>
     body {
@@ -102,9 +103,44 @@
         font-size: 0.9em;
         color: #888;
     }
+            .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 30px;
+            background: #1f2933;
+            color: #fff;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            max-height: 30px;
+        }
+
+        .topbar-left button {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          padding: 6px;
+          background: none;
+          border: none;
+          line-height: 0;
+        }
+
 </style>
 <body>
+    <header class="top-bar" >
 
+    <div class="topbar-left" style="display:flex; align-items:center;">
+        <button style="background:none;border:none;cursor:pointer;padding:6px;display:flex;">
+            <img
+                src="/static/logo.webp"
+                style="width:40px; height:auto;"
+                alt="icon"
+            >
+        </button>
+    </div>
+
+</header>
     <div class="container">
         <a href="{% url 'main_page' %}" class="back-btn">&larr; Назад</a>
 
